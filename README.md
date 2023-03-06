@@ -1,2 +1,2 @@
 # Jogos
- jogo sutilizando pygame
+ Jogos utilizando a biblioteca pygame
