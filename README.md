@@ -1,6 +1,4 @@
 # Jogos
-<<<<<<< HEAD
-
 Repositório de estudo para criação de jogos utilizando a biblioteca pygame.
 O objetivo é, através da criação de jogos o estudo da linguagem python.
 
