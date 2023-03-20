@@ -9,16 +9,18 @@ WIDTH = 1800
 HEIGHT = 900
 TILE_SIZE = 100
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
-pygame.display.set_caption('Space Platformer')
+pygame.display.set_caption('Super Venhec')
 fps = 60
 timer = pygame.time.Clock()
 counting = pygame.time.Clock()
-# font = pygame.font.Font('freesansbold.ttf', 20)
+
+
 active_level = 2
 active_phase = 3
 level = levels[active_level][active_phase]
-# load images
-bg = pygame.image.load('assets/images/space bg.jpg')
+
+# Imagens utilizadas
+bg = pygame.image.load('assets/images/space bg.png')
 rock = pygame.transform.scale(pygame.image.load('assets/images/tiles/rock.png'), (100, 100))
 ground = pygame.transform.scale(pygame.image.load('assets/images/tiles/ground.png'), (100, 100))
 platform = pygame.transform.scale(pygame.image.load('assets/images/tiles/platform.png'), (100, 50))
@@ -43,7 +45,7 @@ for _ in range(1, 5):
 # Sons
 pygame.mixer.init()
 pygame.mixer.music.load('assets/sounds/song2.mp3')
-pygame.mixer.music.set_volume(.2)
+pygame.mixer.music.set_volume(.05)
 pygame.mixer.music.play(-1)
 
 acid_sound = pygame.mixer.Sound('assets/sounds/acid.mp3')
@@ -51,6 +53,7 @@ portal_sound = pygame.mixer.Sound('assets/sounds/fast woosh.mp3')
 end_sound = pygame.mixer.Sound('assets/sounds/victory.mp3')
 jump_sound = pygame.mixer.Sound('assets/sounds/leap.mp3')
 key_sound = pygame.mixer.Sound('assets/sounds/key_acquire.mp3')
+derrota = pygame.mixer.Sound('assets/sounds/derrota.mp3')
 
 # Variáveis
 direction = 1  # 1 = right, -1 = left
@@ -63,7 +66,7 @@ init_x = player_x
 init_y = player_y
 counter = 0
 mode = 'idle'
-player_speed = 10
+player_speed = 12
 x_change = 0
 y_change = 0
 gravity = .5
@@ -102,7 +105,7 @@ def draw_inventory():
     pygame.draw.rect(screen, 'white', [348, HEIGHT - 117, 532, 104], 3, 5)
     pygame.draw.rect(screen, 'white', [880, HEIGHT - 117, 910, 104], 3, 5)
     font.italic = True
-    inventory_text = font.render('Inventory:', True, 'white')
+    inventory_text = font.render('Inventário:', True, 'white')
     screen.blit(inventory_text, (14, HEIGHT - 113))
     for q in range(4):
         pygame.draw.rect(screen, colors[q], [10 + (80 * q), HEIGHT - 88, 70, 70], 5, 5)
@@ -113,22 +116,22 @@ def draw_inventory():
     level_text = font.render(f'Level: {active_level + 1}', True, 'white')
     screen.blit(level_text, (354, HEIGHT - 110))
     phase_strings = ['Blue', 'Green', 'Red', 'Gold']
-    phase_text = font.render(f'Phase: {phase_strings[active_phase]}', True, colors[active_phase])
+    phase_text = font.render(f'Fase: {phase_strings[active_phase]}', True, colors[active_phase])
     screen.blit(phase_text, (354, HEIGHT - 80))
-    lives_text = font.render(f'Lives: {lives}', True, 'green')
+    lives_text = font.render(f'Vidas: {lives}', True, 'green')
     screen.blit(lives_text, (354, HEIGHT - 50))
-    time_text = font.render(f'Elapsed Time:', True, 'white')
+    time_text = font.render(f'Tempo:', True, 'white')
     time_text2 = font.render(f'{time * 2.5} seconds', True, 'white')
     screen.blit(time_text, (600, HEIGHT - 110))
     screen.blit(time_text2, (600, HEIGHT - 80))
 
     if enter_message:
         font = pygame.font.Font('freesansbold.ttf', 44)
-        enter_text = font.render('Press Enter to Go Through Portal!', True, 'white')
+        enter_text = font.render('Pressione "Enter" para acessar o portal!', True, 'white')
         screen.blit(enter_text, (900, HEIGHT - 90))
     else:
-        font = pygame.font.Font('freesansbold.ttf', 44)
-        enter_text = font.render('Collect Keys and Get To The Gold Door!!', True, 'white')
+        font = pygame.font.Font('freesansbold.ttf', 40)
+        enter_text = font.render('Pegue as chaves e vá para a porta dourada!!', True, 'white')
         screen.blit(enter_text, (900, HEIGHT - 90))
 
 
@@ -287,7 +290,7 @@ def print_end(win_or_lose):
     win_text = font.render(win_or_lose, True, 'white')
     screen.blit(win_text, (100, 500))
     font = pygame.font.Font('freesansbold.ttf', 100)
-    win_text2 = font.render(f'Your Time: {time * 2.5}', True, 'white')
+    win_text2 = font.render(f'Tempo: {time * 2.5}', True, 'white')
     screen.blit(win_text2, (950, 100))
     win_text2 = font.render(f'Enter to Restart', True, 'white')
     screen.blit(win_text2, (950, 300))
@@ -321,11 +324,11 @@ while run:
     # draw inventory
     draw_inventory()
     if win:
-        print_end('WIN!')
-        end_sound.play(1)
+        print_end('VENCEU!')
+        end_sound.play()
     elif lose:
         print_end('LOSE!')
-        end_sound.play(1)
+        derrota.play()
     # handle x-direction movement
     if mode == 'walk':
         if direction == -1 and player_x > 0 and colliding != -1:
@@ -393,7 +396,7 @@ while run:
                                 init_x = player_x
                                 init_y = player_y
                                 y_change = 0
-            elif win or lose:
+            elif win:
                 active_level = 0
                 active_phase = 3
                 win = False
@@ -411,6 +414,24 @@ while run:
                 y_change = 0
                 lives = 5
                 end_sound.stop()
+            elif lose:
+                active_level = 0
+                active_phase = 3
+                win = False
+                lose = False
+                time = 0
+                level = levels[active_level][active_phase]
+                inventory = [False, False, False, False]
+                for _ in range(len(level)):
+                    if 5 in level[_]:
+                        start_pos = (_, level[_].index(5))
+                player_x = start_pos[1] * 100
+                player_y = start_pos[0] * 100 - (8 * player_scale - 100)
+                init_x = player_x
+                init_y = player_y
+                y_change = 0
+                lives = 5
+                derrota.stop()
 
     for i in range(len(acid_list)):
         if acid_list[i].collidepoint(player_x + 30, player_y + 20):
